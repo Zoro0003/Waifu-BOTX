@@ -108,7 +108,7 @@ async def send_image(update: Update, context: CallbackContext) -> None:
     await context.bot.send_photo(
         chat_id=chat_id,
         photo=character['img_url'],
-        caption=f"""𝘼 𝙉𝙚𝙬{character['rarity']} 𝙒𝙖𝙞𝙛𝙪 𝘼𝙥𝙥𝙚𝙖𝙧𝙚𝙙...\n/pick 𝙉𝙖𝙢𝙚 𝙖𝙣𝙙 𝙖𝙙𝙙 𝙞𝙣 𝙔𝙤𝙪𝙧 𝙝𝙖𝙧𝙚𝙢""",
+        caption=f"""𝘼 𝙉𝙚𝙬{character['rarity']} 𝙒𝙖𝙞𝙛𝙪 𝘼𝙥𝙥𝙚𝙖𝙧𝙚𝙙...\n/scratch 𝙉𝙖𝙢𝙚 𝙖𝙣𝙙 𝙖𝙙𝙙 𝙞𝙣 𝙔𝙤𝙪𝙧 𝙝𝙖𝙧𝙚𝙢""",
         parse_mode='Markdown')
     
 async def guess(update: Update, context: CallbackContext) -> None:
