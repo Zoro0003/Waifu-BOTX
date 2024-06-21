@@ -1,90 +1,127 @@
-@app.on_message(filters.command("start") & filters.private)
-async def start(client, message):
-     await query.message.reply_photo(
-            photo="http://telegra.ph/file/4beb984109631f88704b8.jpg",
-            caption=" Welcome To The World of Solo Leveling                          What are you in The World Of Solo Leveling",  reply_markup=InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("Hunter", callback_data="hun"),
-                InlineKeyboardButton("Healer", callback_data="heal")
-            ]
+import random
+from html import escape 
+
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import CallbackContext, CallbackQueryHandler, CommandHandler
+
+from Grabber import application, PHOTO_URL, SUPPORT_CHAT, UPDATE_CHAT, BOT_USERNAME, db, GROUP_ID
+
+collection = db['total_pm_users']
+
+async def start(update: Update, context: CallbackContext) -> None:
+    user_id = update.effective_user.id
+    first_name = update.effective_user.first_name
+    username = update.effective_user.username
+
+    user_data = await collection.find_one({"_id": user_id})
+
+    if user_data is None:
+        
+        await collection.insert_one({"_id": user_id, "first_name": first_name, "username": username})
+        
+        await context.bot.send_message(chat_id=GROUP_ID, text=f"<a href='tg://user?id={user_id}'>{first_name}</a> STARTED THE BOT", parse_mode='HTML')
+    else:
+        
+        if user_data['first_name'] != first_name or user_data['username'] != username:
+            
+            await collection.update_one({"_id": user_id}, {"$set": {"first_name": first_name, "username": username}})
+
+    
+
+    if update.effective_chat.type== "private":
+        
+        
+        caption = f"""
+     ʜᴏᴡ ᴀʀᴇ ʏᴏᴜ I'm Pick Your waifu b. I am a Waifu Collect
+based Game Bot! Want to get help? Click on the use button! Want to request/report bugs?
+Click on the Support button!
+
+Finally, track updates and get useful information by clicking on the Updates button!"""
+        
+        keyboard = [
+            [InlineKeyboardButton("ᴜsᴀɢᴇ", callback_data='help')],
+            [InlineKeyboardButton("sᴜᴘᴘᴏʀᴛ⌥", url=f'https://t.me/{SUPPORT_CHAT}'),
+            InlineKeyboardButton("ᴜᴘᴅᴀᴛᴇs⎌", url=f'https://t.me/{UPDATE_CHAT}')],
+            [InlineKeyboardButton("✚ᴀᴅᴅ ᴍᴇ", url=f'http://t.me/{BOT_USERNAME}?startgroup=new')],
         ]
-    ))
-elif data == "hun":
-        await query.message.reply_photo(
-            photo="http://telegra.ph/file/9471582944eb83307d974.jpg", caption You Have Choosen Hunter Section  Which Starter Hunter You Choose", reply_markup=InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("Cho Kyuhwan", callback_data="cho"),
-                InlineKeyboardButton("Yoo Jino", callback_data="yoo"),
-        InlineKeyboardButton("Kim Sangshik", callback_data="kim")    
-     ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        photo_url = random.choice(PHOTO_URL)
+
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=caption, reply_markup=reply_markup, parse_mode='markdown')
+
+    else:
+        photo_url = random.choice(PHOTO_URL)
+        keyboard = [
+            
+            [InlineKeyboardButton("Help", callback_data='help'),
+             InlineKeyboardButton("Support", url=f'https://t.me/{SUPPORT_CHAT}')],
+            
         ]
-    ))
-elif data =="cho"
-       await query.message.reply_photo(photo = "http://telegra.ph/file/3f1e94cdd6af9da9e3e33.jpg",caption = " Type > Mage
-Rank > C
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await context.bot.send_photo(chat_id=update.effective_chat.id, photo=photo_url, caption=f"""
+                                                                                        ð™ƒð™šð™® ð™©ð™ð™šð™§ð™š! {update.effective_user.first_name}
 
-Strength : 55
-Agility : 65
-Stamina : 50
-Intelligence : 35
-Perception: 45", reply_markup=InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("confirm", callback_data="con_cho"),
-                InlineKeyboardButton("Decline", callback_data="decline_cho")
-            ]
+
+âœ¨Éª á´€á´ ð˜¼ð™¡ð™žð™«ð™š ð˜½ð™–ð™—ð™®
+                                                                                                """
+                                     ,reply_markup=reply_markup )
+
+async def button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == 'help':
+        help_text = """
+    ***Help Section :***
+    
+***/pick - to guess character (only works in group)***
+***/fav - add your fav***
+***/trade - to trade character***
+***/gift - give any character from***
+***/harem - to see your harem***
+***/tops - to see top users***
+***/changetime - change character appear time***
+***/explore - to get rewards***
+***/daily - reward increase too***
+***/sell - <character id> for sell***
+***/buy - for buy waifu***
+***/marry - to marry a random waifu***
+***/store - waifu shop to buy ᴡᴀɪғᴜ***
+***/sbet - to bet tokenran***
+***/propose - to propose.randome waifu***
+***/claim - for daily rewards***
+***/bal - to check current balance***
+***/profile - to check your profile rank***
+***/wsell- to sell any waifu and get some tokens***
+***/xfight- fight dungeons and get tokens and other rewards***
+***/rob- to robber any person  tokens ( rob only who have low tokens)***
+***/gamble- to bet the tokens with loss or profit***
+    """ 
+        help_keyboard = [[InlineKeyboardButton("Back", callback_data='back')]]
+        reply_markup = InlineKeyboardMarkup(help_keyboard)
+        
+        await context.bot.edit_message_caption(chat_id=update.effective_chat.id, message_id=query.message.message_id, caption=help_text, reply_markup=reply_markup, parse_mode='markdown')
+
+    elif query.data == 'back':
+
+        caption = f"""
+     ʜᴏᴡ ᴀʀᴇ ʏᴏᴜ I'm Pick Your waifu b. I am a Waifu Collect
+based Game Bot! Want to get help? Click on the use button! Want to request/report bugs?
+Click on the Support button!
+
+Finally, track updates and get useful information by clicking on the Updates button!"""
+        
+        keyboard = [
+           [InlineKeyboardButton("ᴜsᴀɢᴇ", callback_data='help')],
+            [InlineKeyboardButton("sᴜᴘᴘᴏʀᴛ⌥", url=f'https://t.me/{SUPPORT_CHAT}'),
+            InlineKeyboardButton("ᴜᴘᴅᴀᴛᴇs⎌", url=f'https://t.me/{UPDATE_CHAT}')],
+            [InlineKeyboardButton("✚ᴀᴅᴅ ᴍᴇ", url=f'http://t.me/{BOT_USERNAME}?startgroup=new')],
         ]
-    ))
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await context.bot.edit_message_caption(chat_id=update.effective_chat.id, message_id=query.message.message_id, caption=caption, reply_markup=reply_markup, parse_mode='markdown')
 
-elif data =="yoo"
-       await query.message.reply_photo(photo = "http://telegra.ph/file/4aa0e5aa4c70aef98cce6.jpg",caption = " Type > Tank
-Rank > D
-
-Strength : 50
-Agility : 39
-Stamina : 60
-Intelligence : 30
-Perception: 40", reply_markup=InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("confirm", callback_data="con_yoo"),
-                InlineKeyboardButton("Decline", callback_data="decline_yoo")
-            ]
-        ]
-    ))
-
-elif data =="kim"
-       await query.message.reply_photo(photo = "http://telegra.ph/file/76beb67d46691ac83527d.jpg",caption = " Type > Assasin
-Rank > D
-
-Strength : 60
-Agility : 50
-Stamina : 45
-Intelligence : 45
-Perception: 40", reply_markup=InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("confirm", callback_data="con_kim"),
-                InlineKeyboardButton("Decline", callback_data="decline_kim")
-            ]
-        ]
-    ))
-elif data =="con_cho"
-await query.message.reply_photo(photo="http://telegra.ph/file/3f1e94cdd6af9da9e3e33.jpg" caption="Hunter Cho Kyuhwan Has Been Added To Your /huntervault")
-
-elif data =="decline_cho" 
-await query.message.edit_text("If you Don't need This Hunter Do /start to Get New Hunter Details")
-
-elif data =="con_yoo"
-await query.message.reply_photo(photo="http://telegra.ph/file/4aa0e5aa4c70aef98cce6.jpg" caption="Hunter Yoo Jino  Has Been Added To Your /huntervault")
-
-elif data =="decline_yoo" 
-await query.message.edit_text("If you Don't need This Hunter Do /start to Get New Hunter Details")
-
-elif data =="con_kim"
-await query.message.reply_photo(photo="http://telegra.ph/file/76beb67d46691ac83527d.jpg" caption="Hunter Kim Sangshik Has Been Added To Your /huntervault")
-
-elif data =="decline_kim" 
-await query.message.edit_text("If you Don't need This Hunter Do /start to Get New Hunter Details")
+application.add_handler(CallbackQueryHandler(button, pattern='^help$|^back$', block=False))
+start_handler = CommandHandler('start', start, block=False)
+application.add_handler(start_handler)
